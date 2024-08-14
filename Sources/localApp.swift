@@ -35,6 +35,7 @@ struct localApp
     ///   - reportPath: The path where the report file will be generated. If `"."` or an empty string, report will be generated to the terminal.
     /// - Throws: An error if the report path is invalid or if there are no localization files in the directory.
     init(filesURL: String?, reportPath: String) throws {
+        
         if reportPath == "." || reportPath.isEmpty {
             self.reportURL = nil
         }
@@ -61,6 +62,7 @@ struct localApp
             includingPropertiesForKeys: nil,
             options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
         )
+        
         let localizationFiles = allFiles.filter { $0.lastPathComponent.contains("localization-") }
         
         guard !localizationFiles.isEmpty else {
@@ -78,8 +80,7 @@ struct localApp
     /// If the report URL is `nil`, the report is printed to the console. Otherwise, it writes to `loclalization_report.md`.
     ///
     /// - Throws: An error if writing the report file fails.
-    func generateReport() throws
-    {
+    func generateReport() throws {
         do {
             if let reportURL = reportURL {
                 let reportData = try localDirectory.writeReportData(isForFile: true)
@@ -109,8 +110,7 @@ struct localApp
     /// ensuring that the localization keys are consistent and sorted in each file.
     ///
     /// - Throws: An error if any file fails to be corrected.
-    mutating func correctLocal() throws
-    {
+    mutating func correctLocal() throws {
         do
         {
             try localDirectory.correctAllFiles()
@@ -135,8 +135,7 @@ func titleFormat(_ text: String) -> String {
 ///   - fileName: The name of the localization file.
 ///   - keys: A set of missing keys in the file.
 /// - Returns: A string representing the formatted list of missing keys.
-func keysFormat(fileName: String, keys: Set<String>) -> String
-{
+func keysFormat(fileName: String, keys: Set<String>) -> String {
     var keysText = String()
     
     keysText.append("\n\n- **\(fileName)**")

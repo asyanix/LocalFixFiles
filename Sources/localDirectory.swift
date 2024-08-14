@@ -29,8 +29,8 @@ struct LocalizationDirectory
     /// and updates both the `localizationKeys` dictionary and the `allUniqueKeys` set.
     ///
     /// - Throws: An error if the file content cannot be read or parsed.
-    mutating func getAllKeys() throws
-    {
+    mutating func getAllKeys() throws {
+        
         for fileURL in localizationFiles {
             do {
                 let fileContent = try readFileContent(fileURL)
@@ -48,8 +48,7 @@ struct LocalizationDirectory
     /// - Parameter isForFile: A boolean indicating whether the report is written to a file or to the terminal.
     /// - Returns: A string representing the content of the report.
     /// - Throws: An error if the report cannot be generated.
-    func writeReportData(isForFile: Bool) throws -> String
-    {
+    func writeReportData(isForFile: Bool) throws -> String {
         var reportText = String()
         
         if isForFile {
@@ -128,9 +127,9 @@ struct LocalizationDirectory
     /// - Returns: The content of the file as a string.
     /// - Throws: `LocalError.FileReadingError` if the file cannot be read, or
     ///           `LocalError.FileDataConversionError` if the file's data cannot be converted to a string.
-    private func readFileContent(_ fileURL: URL) throws -> String
-    {
+    private func readFileContent(_ fileURL: URL) throws -> String {
         let fileName = fileURL.lastPathComponent
+        
         do {
             let fileData = try Data(contentsOf: fileURL)
             if let fileContent = String(data: fileData, encoding: .utf8), !fileContent.isEmpty {
@@ -147,9 +146,9 @@ struct LocalizationDirectory
     ///
     /// - Parameter text: The content of the localization file as a string.
     /// - Returns: A set containing all the keys found in the file.
-    private func parseFileContent(_ text: String)  -> Set<String>
-    {
+    private func parseFileContent(_ text: String)  -> Set<String> {
         var localizationKey: Set<String> = Set()
+        
         text.enumerateLines { line, _ in
             let modifiedText = line.components(separatedBy: "\"").dropFirst()
             if let key = modifiedText.first
@@ -166,6 +165,7 @@ struct LocalizationDirectory
     ///   - dictionary: A dictionary that will be updated with translation key-value pairs.
     ///   - text: The content of the localization file.
     private mutating func getTranslationValues(in dictionary: inout Dictionary<String, String>, by text: String) {
+        
         let lines = text.components(separatedBy: .newlines)
         
         for line in lines {
