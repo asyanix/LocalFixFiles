@@ -22,6 +22,7 @@ The `locafix` tool can generate a report `localization_report.md` of missing lin
 `localfix --correct` - The report is not generated, files in the current directory are corrected.
 
 **Screenshots:**
+
 <img width="697" alt="example_usage2" src="https://github.com/user-attachments/assets/89091db3-9394-4e88-9dc2-04b3f0d847b6">
 
 <img width="828" alt="example_usage_1" src="https://github.com/user-attachments/assets/62b62f36-8622-43b2-b80a-482b395aea53">
