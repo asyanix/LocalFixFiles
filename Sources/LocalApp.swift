@@ -7,23 +7,24 @@
 
 import Foundation
 
+// MARK: - LocalApp
+
 /// A structure representing the main application logic for handling localization files.
 ///
 /// This structure initializes the localization file directory, generates reports for missing localization keys,
 /// and corrects localization files by adding missing keys and ensuring consistency across all files.
-struct localApp
-{
+struct LocalApp {
+    
+    // MARK: - Properties
+    
     /// The URL where the report will be generated, or `nil` if report will be generated in the terminal.
     private let reportURL: URL?
     
     /// The URL of the current directory where localization files are located.
     private let currentDirectoryURL: URL
     
-    /// A `LocalizationDirectory` instance representing the directory of localization files.
-    internal var localDirectory: LocalizationDirectory
-    
     /// A file manager instance used for file system operations.
-    private let fileManager = FileManager.default
+    private let fileManager: FileManager
     
     /// Initializes the `localApp` instance.
     ///
@@ -33,30 +34,22 @@ struct localApp
     /// - Parameters:
     ///   - filesURL: The path to the directory containing localization files. If `nil`, the current directory is used.
     ///   - reportPath: The path where the report file will be generated. If `"."` or an empty string, report will be generated to the terminal.
-    /// - Throws: An error if the report path is invalid or if there are no localization files in the directory.
-    init(filesURL: String?, reportPath: String) throws {
-        
-        if reportPath == "." || reportPath.isEmpty {
-            self.reportURL = nil
-        }
-        else {
-            let reportURL = URL(fileURLWithPath: reportPath)
-            var isDirectory: ObjCBool = false
-            guard fileManager.fileExists(atPath: reportURL.path, isDirectory: &isDirectory),
-                  isDirectory.boolValue else {
-                throw LocalError.InvalidReportURL(reportURL: reportPath)
-            }
-            
-            self.reportURL = reportURL
-        }
-        
-        if let filesURL = filesURL {
-            currentDirectoryURL = URL(fileURLWithPath: filesURL)
-        }
-        else {
-            currentDirectoryURL = URL(fileURLWithPath: fileManager.currentDirectoryPath)
-        }
-        
+    ///   - fileManager: A file manager instance used for file system operations.
+    init(filesURL: String?, reportPath: String, fileManager: FileManager) throws {
+        self.fileManager = fileManager
+        self.reportURL = reportPath == "." || reportPath.isEmpty ? nil : URL(fileURLWithPath: reportPath)
+        self.currentDirectoryURL = URL(fileURLWithPath: filesURL ?? fileManager.currentDirectoryPath)
+    }
+    
+    /// Retrieves the localization directory by filtering files that contain localization data.
+    ///
+    /// This function scans the specified directory for files that match the naming pattern
+    /// for localization files (`localization-*`). It filters out hidden files and subdirectories,
+    /// returning only the localization files. If no localization files are found, it throws an error.
+    ///
+    /// - Throws:
+    ///   - `LocalError.notParsingFiles` if no localization files are found in the specified directory.
+    func getLocalizationDirectory() throws -> LocalizationDirectory {
         let allFiles = try fileManager.contentsOfDirectory(
             at: currentDirectoryURL,
             includingPropertiesForKeys: nil,
@@ -66,12 +59,9 @@ struct localApp
         let localizationFiles = allFiles.filter { $0.lastPathComponent.contains("localization-") }
         
         guard !localizationFiles.isEmpty else {
-            throw LocalError.NotParsingFiles(directoryURL: currentDirectoryURL.absoluteString)
+            throw LocalError.notParsingFiles(directoryURL: currentDirectoryURL.absoluteString)
         }
-        
-        self.localDirectory = LocalizationDirectory(localizationFiles: localizationFiles)
-        do { try self.localDirectory.getAllKeys() }
-        
+        return try LocalizationDirectory(localizationFiles: localizationFiles)
     }
     
     /// Generates a report of missing localization keys.
@@ -80,29 +70,32 @@ struct localApp
     /// If the report URL is `nil`, the report is printed to the console. Otherwise, it writes to `loclalization_report.md`.
     ///
     /// - Throws: An error if writing the report file fails.
-    func generateReport() throws {
-        do {
-            if let reportURL = reportURL {
-                let reportData = try localDirectory.writeReportData(isForFile: true)
-                
-                let fileReportURL = reportURL.appendingPathComponent("localization_report.md")
-                
-                if let data = reportData.data(using: .utf8) {
-                    do {
-                        try data.write(to: fileReportURL)
-                        print(titleFormat("\nReport successfully wrote to file!\n"))
-                    } catch {
-                        throw LocalError.FileWritingError
-                    }
-                }
-            }
-            else {
-                let reportData = try localDirectory.writeReportData(isForFile: false)
-                print(reportData)
-                return
+    /// - Throws: An error if the report path is invalid or if there are no localization files in the directory.
+    func generateReport(localDirectory: LocalizationDirectory) throws {
+        if let reportFileURL = reportURL {
+            var isDirectory: ObjCBool = false
+            guard fileManager.fileExists(atPath: reportFileURL.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+                throw LocalError.invalidReportURL(reportURL: reportFileURL.absoluteString)
             }
         }
+        
+        if let reportURL = reportURL {
+            let reportData = try localDirectory.writeReportData(isForFile: true)
+            
+            let fileReportURL = reportURL.appendingPathComponent("localization_report.md")
+            
+            if let data = reportData.data(using: .utf8) {
+                try data.write(to: fileReportURL)
+                print(titleFormat("\nReport successfully wrote to file!\n"))
+            }
+        }
+        else {
+            let reportData = try localDirectory.writeReportData(isForFile: false)
+            print(reportData)
+            return
+        }
     }
+    
     
     /// Corrects localization files by adding any missing keys and ensuring key consistency.
     ///
@@ -110,12 +103,9 @@ struct localApp
     /// ensuring that the localization keys are consistent and sorted in each file.
     ///
     /// - Throws: An error if any file fails to be corrected.
-    mutating func correctLocal() throws {
-        do
-        {
-            try localDirectory.correctAllFiles()
-            print(titleFormat("Localization files successfully corrected!\n"))
-        }
+    func correctLocal(localDirectory: LocalizationDirectory) throws {
+        try localDirectory.correctAllFiles()
+        print(titleFormat("\nLocalization files successfully corrected!\n"))
     }
 }
 

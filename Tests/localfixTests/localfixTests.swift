@@ -83,8 +83,9 @@ final class localfixTests: XCTestCase {
         _ = try createLocalizationFile(fileName: "localization-ru.txt", content: ruLocalization)
         _ = try createLocalizationFile(fileName: "localization-es.txt", content: esLocalization)
         
-        let app = try localApp(filesURL: tempDirectoryURL.path, reportPath: "")
-        let reportContent = try app.localDirectory.writeReportData(isForFile: true)
+        let app = try LocalApp(filesURL: tempDirectoryURL.path, reportPath: "", fileManager: .default)
+        var localDirectory = try app.getLocalizationDirectory()
+        let reportContent = try localDirectory.writeReportData(isForFile: true)
         
         let resultData = parseReportContent(reportContent)
         
@@ -120,8 +121,9 @@ final class localfixTests: XCTestCase {
         _ = try createLocalizationFile(fileName: "localization-fr.txt", content: frLocalization)
         _ = try createLocalizationFile(fileName: "localization-it.txt", content: itLocalization)
         
-        let app = try localApp(filesURL: tempDirectoryURL.path, reportPath: "")
-        let reportContent = try app.localDirectory.writeReportData(isForFile: true)
+        let app = try LocalApp(filesURL: tempDirectoryURL.path, reportPath: "", fileManager: .default)
+        var localDirectory = try app.getLocalizationDirectory()
+        let reportContent = try localDirectory.writeReportData(isForFile: true)
         
         let resultData = parseReportContent(reportContent)
         
@@ -132,9 +134,9 @@ final class localfixTests: XCTestCase {
     /// The test verifies that the report indicates no missing keys.
     func testGenerateReportAllFilesCorrect() throws {
         let testData = """
-        \n## Итоговый отчёт
+        \n## Final report
         
-        Проверка на целостность файлов прошла успешно!
+        File integrity check passed successfully!
         """
         
         let enLocalization = """
@@ -159,8 +161,9 @@ final class localfixTests: XCTestCase {
         _ = try createLocalizationFile(fileName: "localization-ru.txt", content: ruLocalization)
         _ = try createLocalizationFile(fileName: "localization-es.txt", content: esLocalization)
         
-        let app = try localApp(filesURL: tempDirectoryURL.path, reportPath: "")
-        let reportContent = try app.localDirectory.writeReportData(isForFile: true)
+        let app = try LocalApp(filesURL: tempDirectoryURL.path, reportPath: "", fileManager: .default)
+        var localDirectory = try app.getLocalizationDirectory()
+        let reportContent = try localDirectory.writeReportData(isForFile: true)
         
         XCTAssertEqual(reportContent, testData)
     }
@@ -188,21 +191,22 @@ final class localfixTests: XCTestCase {
         _ = try createLocalizationFile(fileName: "localization-fr.txt", content: frLocalization)
         _ = try createLocalizationFile(fileName: "localization-it.txt", content: itLocalization)
         
-        var app = try localApp(filesURL: tempDirectoryURL.path, reportPath: "")
-        try app.correctLocal()
-        
-        XCTAssertTrue( app.localDirectory.localizationKeys.allSatisfy({$0.value.isSubset(of: app.localDirectory.allUniqueKeys)}) )
+        var app = try LocalApp(filesURL: tempDirectoryURL.path, reportPath: "", fileManager: .default)
+        var localDirectory = try app.getLocalizationDirectory()
+        try app.correctLocal(localDirectory: localDirectory)
+        XCTAssertTrue( localDirectory.localizationKeys.allSatisfy({$0.value.isSubset(of: localDirectory.allUniqueKeys)}) )
     }
     
     /// Tests that an error is thrown when an invalid report URL is provided.
     func testErrorInvalidReportURL() throws {
         let wrongURL = tempDirectoryURL.appendingPathComponent("example.txt").absoluteString
+        var app = try LocalApp(filesURL: wrongURL, reportPath: "", fileManager: .default)
         /// when
-        XCTAssertThrowsError(try localApp(filesURL: wrongURL, reportPath: ""))
+        XCTAssertThrowsError(try app.getLocalizationDirectory())
         { error in
             /// then
             if let error = error as? LocalError {
-                XCTAssertEqual(error.errorDescription,  LocalError.InvalidReportURL(reportURL: wrongURL).errorDescription)
+                XCTAssertEqual(error.errorDescription,  LocalError.invalidReportURL(reportURL: wrongURL).errorDescription)
             }
         }
     }
@@ -212,13 +216,14 @@ final class localfixTests: XCTestCase {
         _ = try createLocalizationFile(fileName: "example-1.txt", content: "")
         _ = try createLocalizationFile(fileName: "example-2.txt", content: "")
         _ = try createLocalizationFile(fileName: "example-3.txt", content: "")
+        var app = try LocalApp(filesURL: tempDirectoryURL.absoluteString, reportPath: "", fileManager: .default)
         
         /// when
-        XCTAssertThrowsError(try localApp(filesURL: tempDirectoryURL.absoluteString, reportPath: ""))
+        XCTAssertThrowsError(try app.getLocalizationDirectory())
         { error in
             /// then
             if let error = error as? LocalError {
-                XCTAssertEqual(error.errorDescription,  LocalError.NotParsingFiles(directoryURL: tempDirectoryURL.absoluteString).errorDescription)
+                XCTAssertEqual(error.errorDescription,  LocalError.notParsingFiles(directoryURL: tempDirectoryURL.absoluteString).errorDescription)
             }
         }
     }

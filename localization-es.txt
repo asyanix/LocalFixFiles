@@ -1,0 +1,2 @@
+"logout" = "Cerrar sesión";
+"welcome_message" = "¡Bienvenido!";

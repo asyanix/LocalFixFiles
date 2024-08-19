@@ -8,41 +8,37 @@
 /// Enum representing various errors that can occur during localization file processing.
 import Foundation
 
+// MARK: - LocalError
+
 enum LocalError: LocalizedError {
     
+    // MARK: - Cases
+    
     /// Error indicating a failure to convert file data into a string.
-    case FileDataConversionError(fileName: String)
+    case fileDataConversionError(fileName: String)
     
     /// Error indicating a failure to read a file.
-    case FileReadingError(fileName: String)
+    case fileReadingError(fileName: String)
     
     /// Error indicating that no localization files were found in the specified directory.
-    case NotParsingFiles(directoryURL: String)
+    case notParsingFiles(directoryURL: String)
     
     /// Error indicating that the provided report URL is invalid.
-    case InvalidReportURL(reportURL: String)
+    case invalidReportURL(reportURL: String)
     
-    /// Error indicating a failure to write the report file.
-    case FileWritingError
+    // MARK: - Properties
     
     /// Provides a localized description for each error case.
     var errorDescription: String {
-        
         switch self {
-        case .FileDataConversionError(let fileName):
+        case .fileDataConversionError(let fileName):
             return "Failed to convert data from file \(fileName) to a string."
-            
-        case .FileReadingError(let fileName):
+        case .fileReadingError(let fileName):
             return "Failed to read the file \(fileName)."
-
-        case .NotParsingFiles(let directoryURL):
+        case .notParsingFiles(let directoryURL):
             return "No localization files were found in the directory \(directoryURL)."
-            
-        case .InvalidReportURL(let reportURL):
+        case .invalidReportURL(let reportURL):
             return "The report directory path is invalid: \(reportURL)."
-            
-        case .FileWritingError:
-            return "Failed to write the report to a file."
         }
     }
 }
