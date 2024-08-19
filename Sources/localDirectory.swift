@@ -26,6 +26,18 @@ struct LocalizationDirectory {
     /// A dictionary mapping each localization file's name to its set of localization keys.
     var localizationKeys: [String: Set<String>]
     
+    /// Initializes a `LocalizationDirectory` with the provided localization files.
+    ///
+    /// This initializer sets up the `LocalizationDirectory` using a list of localization files. It processes
+    /// these files to extract all unique localization keys and stores them in the instance. If an error occurs
+    /// while extracting keys from the files, it throws an appropriate error.
+    ///
+    /// - Parameters:
+    ///   - localizationFiles: An array of `URL` objects representing the paths to the localization files.
+    ///
+    /// - Throws:
+    ///   - `LocalError` if an error occurs while extracting keys from the localization files. The specific
+    ///     error thrown depends on the nature of the issue encountered during processing.
     init(localizationFiles: [URL]) throws {
         self.localizationFiles = localizationFiles
         let localKeys = try LocalizationDirectory.getLocalizationKeys(localFiles: localizationFiles)
@@ -41,6 +53,7 @@ struct LocalizationDirectory {
     ///
     /// - Throws: An error if the file content cannot be read or parsed.
     static func getLocalizationKeys(localFiles: [URL]) throws -> [String: Set<String>] {
+        
         var tempLocalizationKeys: [String: Set<String>] = [:]
         for fileURL in localFiles {
             let fileContent = try readFileContent(fileURL)
@@ -100,6 +113,7 @@ struct LocalizationDirectory {
         var localizationKeysTemp = localizationKeys
         var fileKeysTranslation: [String: String]
         for fileURL in localizationFiles {
+            
             fileKeysTranslation = Dictionary(uniqueKeysWithValues: allUniqueKeys.map { ($0, "") })
             let fileContent = try LocalizationDirectory.readFileContent(fileURL)
             fileKeysTranslation = getTranslationValues(in: fileKeysTranslation, by: fileContent)
@@ -125,8 +139,8 @@ struct LocalizationDirectory {
     /// - Throws: `LocalError.FileReadingError` if the file cannot be read, or
     ///           `LocalError.FileDataConversionError` if the file's data cannot be converted to a string.
     static private func readFileContent(_ fileURL: URL) throws -> String {
-        let fileName = fileURL.lastPathComponent
         
+        let fileName = fileURL.lastPathComponent
         do {
             let fileData = try Data(contentsOf: fileURL)
             if let fileContent = String(data: fileData, encoding: .utf8), !fileContent.isEmpty {
@@ -144,8 +158,8 @@ struct LocalizationDirectory {
     /// - Parameter text: The content of the localization file as a string.
     /// - Returns: A set containing all the keys found in the file.
     static private func parseFileContent(_ text: String)  -> Set<String> {
-        var localizationKey: Set<String> = Set()
         
+        var localizationKey: Set<String> = Set()
         text.enumerateLines { line, _ in
             let modifiedText = line.components(separatedBy: "\"").dropFirst()
             if let key = modifiedText.first {

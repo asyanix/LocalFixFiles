@@ -26,7 +26,7 @@ struct LocalApp {
     /// A file manager instance used for file system operations.
     private let fileManager: FileManager
     
-    /// Initializes the `localApp` instance.
+    /// Initializes the `LocalApp` instance.
     ///
     /// This initializer sets up the localization files directory and validates the report path.
     /// It filters out any files in the directory that do not follow the `localization-*` naming convention.
@@ -80,16 +80,15 @@ struct LocalApp {
         }
         
         if let reportURL = reportURL {
-            let reportData = try localDirectory.writeReportData(isForFile: true)
             
+            let reportData = try localDirectory.writeReportData(isForFile: true)
             let fileReportURL = reportURL.appendingPathComponent("localization_report.md")
             
             if let data = reportData.data(using: .utf8) {
                 try data.write(to: fileReportURL)
                 print(titleFormat("\nReport successfully wrote to file!\n"))
             }
-        }
-        else {
+        } else {
             let reportData = try localDirectory.writeReportData(isForFile: false)
             print(reportData)
             return

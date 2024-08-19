@@ -57,7 +57,6 @@ struct Localfix: ParsableCommand {
         } catch let error as LocalError {
             print(error.errorDescription)
         }
-        
     }
 }
 
